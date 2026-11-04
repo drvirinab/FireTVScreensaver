@@ -1,0 +1,529 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TV Art</title>
+<style>
+:root{--bg:#121316;--panel:#1b1d22;--panel2:#23262d;--line:#2e323b;--tx:#e6e8ec;--mut:#8b919c;--acc:#4f9dff;--ok:#4cc38a;--warn:#f0b429;--bad:#ef5b5b}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+button,select,input{font:inherit;color:var(--tx)}
+button{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:6px 10px;cursor:pointer}
+button:hover{border-color:var(--acc)}
+button.pri{background:var(--acc);border-color:var(--acc);color:#fff}
+button.bad{border-color:var(--bad);color:var(--bad)}
+button:disabled{opacity:.4;cursor:default}
+select,input[type=text],input[type=date]{background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:6px 8px;max-width:100%}
+label{color:var(--mut);font-size:12px}
+.hidden{display:none!important}
+#login{max-width:320px;margin:15vh auto;padding:24px;background:var(--panel);border:1px solid var(--line);border-radius:10px;text-align:center}
+#login input{width:100%;font-size:24px;text-align:center;letter-spacing:6px;margin:12px 0}
+#login .err{color:var(--bad);min-height:20px}
+header{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--panel);border-bottom:1px solid var(--line);flex-wrap:wrap}
+header h1{font-size:16px;margin:0}
+header .act{color:var(--mut);font-size:12px;flex:1}
+#layout{display:flex;align-items:flex-start}
+nav{width:210px;flex:none;padding:10px;position:sticky;top:0;max-height:100vh;overflow:auto}
+nav .it{display:flex;justify-content:space-between;gap:6px;padding:7px 9px;border-radius:6px;cursor:pointer;white-space:nowrap}
+nav .it span:first-child{overflow:hidden;text-overflow:ellipsis}
+nav .it:hover{background:var(--panel)}
+nav .it.on{background:var(--panel2);outline:1px solid var(--acc)}
+nav .cnt{color:var(--mut)}
+nav h3{font-size:11px;text-transform:uppercase;color:var(--mut);margin:14px 9px 4px}
+main{flex:1;min-width:0;padding:10px 14px 60px}
+#fbar{display:none;margin-bottom:10px}
+.filters{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:flex-end;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px;margin-bottom:10px}
+.filters .g{display:flex;flex-direction:column;gap:2px}
+.filters .chk{flex-direction:row;align-items:center;gap:5px;padding-bottom:6px}
+.filters .chk label{color:var(--tx);font-size:13px}
+#bar{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;gap:6px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-bottom:10px}
+#bar .sp{flex:1}
+#selcount{font-weight:600;margin-right:6px}
+.menu{position:fixed;z-index:40;min-width:180px;max-width:90vw;max-height:50vh;overflow:auto;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:4px;box-shadow:0 6px 20px rgba(0,0,0,.5)}
+.menu .mi{padding:8px 10px;border-radius:6px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.menu .mi:hover{background:var(--panel)}
+#grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.card{position:relative;aspect-ratio:16/10;background:var(--panel);border:2px solid transparent;border-radius:6px;overflow:hidden;cursor:pointer;user-select:none}
+.card img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+.card.sel{border-color:var(--acc)}
+.card.sel::after{content:"\2713";position:absolute;top:4px;left:4px;width:20px;height:20px;border-radius:50%;background:var(--acc);color:#fff;text-align:center;font-size:13px;line-height:20px}
+.card.gone img{opacity:.5}
+.card .fav,.card .zoom{position:absolute;top:3px;border:0;background:rgba(0,0,0,.55);border-radius:50%;width:26px;height:26px;padding:0;font-size:14px;line-height:26px;text-align:center}
+.card .fav{right:3px;color:#aaa}.card .fav.on{color:#ffd54a}
+.card .zoom{right:32px;opacity:0}
+.card:hover .zoom{opacity:1}
+@media (hover:none){.card .zoom{opacity:1}}
+.card .bd{position:absolute;left:3px;bottom:3px;display:flex;gap:3px;flex-wrap:wrap}
+.card .bd i{font-style:normal;font-size:10px;padding:1px 5px;border-radius:8px;background:rgba(0,0,0,.65);color:#fff}
+.card .bd .lr{background:#b8741a}.card .bd .nw{background:#6a4fc1}.card .bd .dp{background:#2f7a9c}
+#empty{color:var(--mut);padding:40px;text-align:center}
+#sentinel{height:1px}
+details.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;margin-top:14px;padding:0 12px}
+#upPanel{margin:0 0 10px}
+details.panel summary{cursor:pointer;padding:10px 0;font-weight:600}
+details.panel .body{padding:4px 0 14px;display:flex;flex-direction:column;gap:10px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+#drop{border:2px dashed var(--line);border-radius:8px;padding:24px;text-align:center;color:var(--mut)}
+#drop.over{border-color:var(--acc);color:var(--tx)}
+progress{width:100%;height:12px}
+#results{max-height:200px;overflow:auto;font-size:12px}
+#results .added{color:var(--ok)}#results .duplicate{color:var(--warn)}#results .failed{color:var(--bad)}
+#lb{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:50;display:flex;align-items:center;justify-content:center}
+#lb img{max-width:96vw;max-height:92vh}
+#lb .cap{position:absolute;bottom:8px;left:0;right:0;text-align:center;color:#ccc;font-size:12px}
+#toast{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);padding:8px 14px;border-radius:8px;z-index:60}
+@media (max-width:699px){
+ #fbar{display:block}
+ .filters{display:none}
+ .filters.open{display:flex}
+}
+@media (max-width:760px){
+ #layout{flex-direction:column}
+ nav{width:100%;position:static;max-height:none;display:flex;gap:6px;overflow-x:auto;padding:8px 10px}
+ nav h3{display:none}
+ nav .it{border:1px solid var(--line);flex:none}
+ #grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}
+ main{padding:8px 10px 60px}
+}
+</style>
+</head>
+<body>
+<div id="login" class="hidden">
+  <h2 style="margin:0">TV Art</h2>
+  <div style="color:var(--mut)">Enter the PIN shown on your TV</div>
+  <input id="pin" type="text" inputmode="numeric" autocomplete="off" maxlength="6" autofocus>
+  <button class="pri" id="pinGo" style="width:100%">Unlock</button>
+  <div class="err" id="pinErr"></div>
+</div>
+
+<div id="app" class="hidden">
+<header>
+  <h1>TV Art</h1>
+  <div class="act" id="active"></div>
+  <button id="upBtn" class="pri">Upload</button>
+  <button id="reload">Refresh</button>
+</header>
+<div id="layout">
+<nav id="nav"></nav>
+<main>
+  <details class="panel" id="upPanel"><summary>Upload pictures</summary><div class="body">
+    <div id="drop">Drop pictures here or <input type="file" id="files" multiple accept="image/jpeg,image/png,image/webp,image/bmp"></div>
+    <div class="row">
+      <label>Upload name</label><input type="text" id="upName" style="min-width:200px">
+      <label>Add to slideshow</label><select id="upShow"></select>
+      <span class="row" style="color:var(--mut)">Pictures already in your library are skipped automatically.</span>
+    </div>
+    <progress id="upProg" value="0" max="1" class="hidden"></progress>
+    <div id="upStat" style="color:var(--mut)"></div>
+    <div id="results"></div>
+  </div></details>
+
+  <div id="fbar"><button id="fToggle">Filters (0)</button></div>
+  <div class="filters" id="filters">
+    <div class="g"><label>Date added</label>
+      <div class="row">
+        <select id="dMode"><option value="">Any date</option><option value="on">On</option><option value="before">On/before</option><option value="after">On/after</option><option value="between">Between</option></select>
+        <input type="date" id="d1"><input type="date" id="d2" class="hidden">
+      </div></div>
+    <div class="g"><label>Quick</label><div class="row">
+      <button data-q="today">Today</button><button data-q="week">This week</button><button data-q="month">This month</button></div></div>
+    <div class="g"><label>Upload</label><select id="fBatch"></select></div>
+    <div class="g"><label>In a slideshow</label><select id="fMemb"></select></div>
+    <div class="g chk"><input type="checkbox" id="fLow"><label for="fLow">Blurry</label></div>
+    <div class="g chk"><input type="checkbox" id="fNo169"><label for="fNo169">Gets cropped</label></div>
+    <div class="g chk"><input type="checkbox" id="fDup"><label for="fDup">Duplicates</label></div>
+    <div class="g"><label>Sort</label><select id="fSort"><option value="new">Newest</option><option value="old">Oldest</option><option value="name">Name</option><option value="rand">Random</option></select></div>
+    <div class="g"><button id="fReset">Reset filters</button></div>
+  </div>
+
+  <div id="bar">
+    <span id="selcount">0 selected</span>
+    <button id="bAll">Select all</button><button id="bNone">Clear</button><button id="bInv">Invert</button>
+    <span class="sp"></span>
+    <span id="liveActs" class="row">
+      <button id="bInc">Add to &#9662;</button><button id="bExc">Remove from &#9662;</button>
+      <button id="bFav">&#9733; Favorite</button><button id="bUnfav">Unfavorite</button>
+      <button id="bDel">Delete</button>
+    </span>
+    <span id="trashActs" class="row hidden">
+      <button id="bRestore" class="pri">Restore</button>
+      <button id="bPerm" class="bad">Delete permanently</button>
+      <button id="bEmpty" class="bad">Empty Recently deleted</button>
+    </span>
+  </div>
+
+  <div id="grid"></div>
+  <div id="empty" class="hidden">Nothing here.</div>
+  <div id="sentinel"></div>
+
+
+  <details class="panel"><summary>Slideshows</summary><div class="body">
+    <div class="row"><input type="text" id="newShow" placeholder="New slideshow name"><button id="newShowGo">Create</button></div>
+  </div></details>
+
+  <details class="panel"><summary>Backup</summary><div class="body">
+    <div class="row"><button id="bkDown" class="pri">Download backup</button></div>
+    <div class="row"><label>Restore from file</label><input type="file" id="bkFile" accept=".json,application/json"><button id="bkGo">Restore</button></div>
+    <div id="bkOut" style="color:var(--mut)"></div>
+  </div></details>
+</main>
+</div>
+</div>
+
+<div id="lb" class="hidden"><img id="lbImg" alt=""><div class="cap" id="lbCap"></div></div>
+<div id="menu" class="menu hidden"></div>
+<div id="toast" class="hidden"></div>
+
+<script>
+(function(){
+'use strict';
+var $=function(id){return document.getElementById(id)};
+var S={slideshows:[],batches:[],images:[],active:null};
+var V={view:'all',dMode:'',d1:'',d2:'',batch:'',memb:'',low:false,no169:false,dup:false,sort:'new'};
+var sel=new Set(), list=[], shown=0, lastIdx=-1, byId={}, dupCount={}, randSeed=1, CHUNK=150;
+var DAY=86400000, autoOpened=false;
+
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function pics(n){return n===1?'1 picture':n+' pictures'}
+function toast(m){var t=$('toast');t.textContent=m;t.classList.remove('hidden');clearTimeout(toast.t);toast.t=setTimeout(function(){t.classList.add('hidden')},3500)}
+
+function api(path,body,raw){
+  var o=body===undefined?{credentials:'same-origin'}:{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)};
+  return fetch(path,o).then(function(r){
+    if(r.status===401&&path!=='/api/login'){showLogin();throw new Error('Login required')}
+    return r.json().catch(function(){return {}}).then(function(j){if(!r.ok)throw new Error(j.error||('HTTP '+r.status));return j});
+  });
+}
+
+/* ---------- login ---------- */
+function showLogin(){$('app').classList.add('hidden');$('login').classList.remove('hidden');$('pin').value='';$('pin').focus()}
+function doLogin(){
+  api('/api/login',{pin:$('pin').value}).then(function(){$('pinErr').textContent='';load()}).catch(function(e){$('pinErr').textContent=e.message})
+}
+$('pinGo').onclick=doLogin;
+$('pin').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin()});
+
+/* ---------- data ---------- */
+function load(){
+  return api('/api/state').then(function(j){
+    S=j;byId={};dupCount={};
+    S.images.forEach(function(i){byId[i.id]=i;if(!i.deletedAt)dupCount[i.hash]=(dupCount[i.hash]||0)+1});
+    $('login').classList.add('hidden');$('app').classList.remove('hidden');
+    sel.forEach(function(id){if(!byId[id])sel.delete(id)});
+    if(!liveImgs().length&&!autoOpened){autoOpened=true;$('upPanel').open=true}
+    $('active').textContent='Playing now: '+S.activeSlideshow.name+' ('+S.activeSlideshow.reason+')';
+    buildNav();buildSelects();refresh();
+  }).catch(function(e){if(e.message!=='Login required')toast(e.message)});
+}
+
+function showOpts(first){
+  var h=first||'';
+  S.slideshows.forEach(function(s){h+='<option value="'+s.id+'">'+esc((s.icon?s.icon+' ':'')+s.name)+'</option>'});
+  return h;
+}
+function buildSelects(){
+  var cur=V.batch;
+  var bh='<option value="">All uploads</option>';
+  S.batches.forEach(function(b){bh+='<option value="'+b.id+'">'+esc(b.name)+' ('+b.count+')</option>'});
+  $('fBatch').innerHTML=bh;$('fBatch').value=cur;
+  var mh='<option value="">Any</option><option value="none">In no slideshow</option>';
+  S.slideshows.forEach(function(s){mh+='<option value="in:'+s.id+'">In '+esc(s.name)+'</option><option value="not:'+s.id+'">Not in '+esc(s.name)+'</option>'});
+  var mc=V.memb;$('fMemb').innerHTML=mh;$('fMemb').value=mc;
+  var us=$('upShow').value;$('upShow').innerHTML=showOpts('<option value="">(none)</option>');$('upShow').value=us||'';
+}
+
+function liveImgs(){return S.images.filter(function(i){return !i.deletedAt})}
+function unassigned(i){return i.slideshowIds.length===0}
+function viewImages(){
+  var v=V.view,now=Date.now();
+  if(v==='trash')return S.images.filter(function(i){return i.deletedAt});
+  var L=liveImgs();
+  if(v==='all')return L;
+  if(v==='unassigned')return L.filter(unassigned);
+  if(v==='recent')return L.filter(function(i){return now-i.addedAt<=30*DAY});
+  if(v.indexOf('show:')===0){
+    var id=+v.slice(5),sh=S.slideshows.filter(function(s){return s.id===id})[0];
+    if(sh&&sh.kind===0&&sh.memberIds){return L.filter(function(i){return sh.memberIds.indexOf(i.id)>=0})}
+    return L.filter(function(i){return i.slideshowIds.indexOf(id)>=0});
+  }
+  return L;
+}
+function startOfDay(ms){var d=new Date(ms);d.setHours(0,0,0,0);return d.getTime()}
+function parseDate(v){return v?new Date(v+'T00:00:00').getTime():null}
+
+function applyFilters(){
+  var arr=viewImages(),m=V.dMode,a=parseDate(V.d1),b=parseDate(V.d2);
+  if(m&&a!==null){
+    var lo=-Infinity,hi=Infinity;
+    if(m==='on'){lo=a;hi=a+DAY}
+    else if(m==='before'){hi=a+DAY}
+    else if(m==='after'){lo=a}
+    else if(m==='between'){lo=a;hi=(b!==null?b:a)+DAY;if(hi<lo+DAY){var t=lo;lo=hi-DAY;hi=t+DAY}}
+    arr=arr.filter(function(i){return i.addedAt>=lo&&i.addedAt<hi});
+  }
+  if(V.batch)arr=arr.filter(function(i){return String(i.batchId)===V.batch});
+  if(V.memb==='none')arr=arr.filter(unassigned);
+  else if(V.memb.indexOf('in:')===0){var x=+V.memb.slice(3);arr=arr.filter(function(i){return i.slideshowIds.indexOf(x)>=0})}
+  else if(V.memb.indexOf('not:')===0){var y=+V.memb.slice(4);arr=arr.filter(function(i){return i.slideshowIds.indexOf(y)<0})}
+  if(V.low)arr=arr.filter(function(i){return i.lowRes});
+  if(V.no169)arr=arr.filter(function(i){return i.not16x9});
+  if(V.dup)arr=arr.filter(function(i){return dupCount[i.hash]>1});
+  arr=arr.slice();
+  if(V.sort==='new')arr.sort(function(p,q){return q.addedAt-p.addedAt||q.id-p.id});
+  else if(V.sort==='old')arr.sort(function(p,q){return p.addedAt-q.addedAt||p.id-q.id});
+  else if(V.sort==='name')arr.sort(function(p,q){return p.filename.toLowerCase()<q.filename.toLowerCase()?-1:1});
+  else {var h=function(id){var x=Math.sin(id*12.9898+randSeed*78.233)*43758.5453;return x-Math.floor(x)};arr.sort(function(p,q){return h(p.id)-h(q.id)})}
+  return arr;
+}
+
+/* ---------- nav ---------- */
+function buildNav(){
+  var L=liveImgs(),now=Date.now();
+  var items=[['all','All pictures',L.length],['unassigned','In no slideshow',L.filter(unassigned).length],
+    ['recent','Recently added',L.filter(function(i){return now-i.addedAt<=30*DAY}).length],
+    ['trash','Recently deleted',S.images.length-L.length]];
+  var h='<h3>Library</h3>';
+  items.forEach(function(it){h+='<div class="it'+(V.view===it[0]?' on':'')+'" data-v="'+it[0]+'"><span>'+it[1]+'</span><span class="cnt">'+it[2]+'</span></div>'});
+  h+='<h3>Slideshows</h3>';
+  S.slideshows.forEach(function(s){
+    var k='show:'+s.id;
+    h+='<div class="it'+(V.view===k?' on':'')+'" data-v="'+k+'"><span style="border-left:4px solid '+esc(s.color)+';padding-left:6px">'+esc((s.icon?s.icon+' ':'')+s.name)+'</span><span class="cnt">'+s.count+'</span></div>';
+  });
+  $('nav').innerHTML=h;
+}
+$('nav').addEventListener('click',function(e){
+  var it=e.target.closest('.it');if(!it)return;
+  V.view=it.dataset.v;sel.clear();lastIdx=-1;buildNav();refresh();
+});
+
+/* ---------- grid ---------- */
+function refresh(){
+  list=applyFilters();shown=0;
+  $('grid').innerHTML='';
+  var em=$('empty');em.classList.toggle('hidden',list.length>0);
+  em.textContent=!list.length?(!liveImgs().length&&V.view!=='trash'?'No art yet. Use Upload to add pictures.':filterCount()?'No pictures match these filters.':'Nothing here.'):'';
+  var trash=V.view==='trash';
+  $('liveActs').classList.toggle('hidden',trash);
+  $('trashActs').classList.toggle('hidden',!trash);
+  more();updateBar();
+}
+function cardHtml(i){
+  var b='';
+  if(i.lowRes)b+='<i class="lr">blurry</i>';
+  if(i.not16x9)b+='<i class="nw">gets cropped</i>';
+  if(!i.deletedAt&&dupCount[i.hash]>1)b+='<i class="dp">duplicate</i>';
+  return '<div class="card'+(sel.has(i.id)?' sel':'')+(i.deletedAt?' gone':'')+'" data-id="'+i.id+'" title="'+esc(i.filename+'  '+i.width+'x'+i.height+'  '+(i.sizeBytes/1048576).toFixed(1)+' MB')+'">'+
+    '<img loading="lazy" decoding="async" src="/thumb/'+i.id+'" alt="">'+
+    '<button class="zoom" data-a="zoom" title="View full size">&#128269;</button>'+
+    '<button class="fav'+(i.favorite?' on':'')+'" data-a="fav" title="Favorite">'+(i.favorite?'★':'☆')+'</button>'+
+    '<div class="bd">'+b+'</div></div>';
+}
+function more(){
+  if(shown>=list.length)return;
+  var end=Math.min(list.length,shown+CHUNK),h='';
+  for(var k=shown;k<end;k++)h+=cardHtml(list[k]);
+  $('grid').insertAdjacentHTML('beforeend',h);
+  shown=end;
+}
+var io=new IntersectionObserver(function(es){if(es[0].isIntersecting)more()},{rootMargin:'800px'});
+io.observe($('sentinel'));
+
+function updateBar(){
+  $('selcount').textContent=sel.size+' selected'+(list.length?' of '+list.length:'');
+  var n=sel.size===0;
+  ['bInc','bExc','bFav','bUnfav','bDel','bPerm','bRestore'].forEach(function(id){$(id).disabled=n});
+  $('bEmpty').disabled=!S.images.some(function(i){return i.deletedAt});
+}
+function setSel(id,on){
+  if(on)sel.add(id);else sel.delete(id);
+  var c=$('grid').querySelector('.card[data-id="'+id+'"]');if(c)c.classList.toggle('sel',on);
+}
+$('grid').addEventListener('click',function(e){
+  var card=e.target.closest('.card');if(!card)return;
+  var id=+card.dataset.id,btn=e.target.closest('button');
+  if(btn&&btn.dataset.a==='zoom'){openLb(id);return}
+  if(btn&&btn.dataset.a==='fav'){
+    var im=byId[id];if(im.deletedAt)return;
+    act('/api/favorite',{ids:[id],favorite:!im.favorite});return;
+  }
+  var idx=list.findIndex(function(x){return x.id===id});
+  if(e.shiftKey&&lastIdx>=0){
+    var a=Math.min(lastIdx,idx),b=Math.max(lastIdx,idx),on=!sel.has(id);
+    for(var k=a;k<=b;k++)setSel(list[k].id,true);
+    if(!on)setSel(id,true);
+  }else{
+    setSel(id,!sel.has(id));
+  }
+  lastIdx=idx;updateBar();
+});
+$('bAll').onclick=function(){list.forEach(function(i){sel.add(i.id)});document.querySelectorAll('#grid .card').forEach(function(c){c.classList.add('sel')});updateBar()};
+$('bNone').onclick=function(){sel.clear();document.querySelectorAll('#grid .card.sel').forEach(function(c){c.classList.remove('sel')});updateBar()};
+$('bInv').onclick=function(){list.forEach(function(i){setSel(i.id,!sel.has(i.id))});updateBar()};
+
+/* ---------- actions ---------- */
+function act(path,body,msg){
+  return api(path,body).then(function(){if(msg)toast(msg);return load()}).catch(function(e){toast('Failed: '+e.message)});
+}
+function ids(){return Array.from(sel)}
+function closeMenu(){$('menu').classList.add('hidden');$('menu').dataset.for=''}
+function openMenu(btn,include){
+  var m=$('menu');
+  if(!m.classList.contains('hidden')&&m.dataset.for===btn.id){closeMenu();return}
+  if(!S.slideshows.length){toast('No slideshows yet. Create one under Slideshows below.');return}
+  var h='';
+  S.slideshows.forEach(function(s){h+='<div class="mi" data-id="'+s.id+'">'+esc((s.icon?s.icon+' ':'')+s.name)+'</div>'});
+  m.innerHTML=h;m.dataset.for=btn.id;m.dataset.inc=include?'1':'';
+  m.classList.remove('hidden');
+  var r=btn.getBoundingClientRect();
+  m.style.top=(r.bottom+4)+'px';
+  m.style.left=Math.max(4,Math.min(r.left,window.innerWidth-m.offsetWidth-4))+'px';
+}
+$('bInc').onclick=function(){openMenu(this,true)};
+$('bExc').onclick=function(){openMenu(this,false)};
+$('menu').addEventListener('click',function(e){
+  var it=e.target.closest('.mi');if(!it)return;
+  var inc=$('menu').dataset.inc==='1',id=+it.dataset.id,n=sel.size;
+  var sh=S.slideshows.filter(function(s){return s.id===id})[0];
+  closeMenu();
+  act('/api/membership',{slideshowId:id,ids:ids(),include:inc},(inc?'Added ':'Removed ')+pics(n)+(inc?' to ':' from ')+(sh?sh.name:'slideshow'));
+});
+document.addEventListener('click',function(e){if(!e.target.closest('#menu,#bInc,#bExc'))closeMenu()});
+window.addEventListener('scroll',closeMenu,true);
+$('bFav').onclick=function(){act('/api/favorite',{ids:ids(),favorite:true})};
+$('bUnfav').onclick=function(){act('/api/favorite',{ids:ids(),favorite:false})};
+$('bDel').onclick=function(){var n=sel.size;act('/api/delete',{ids:ids(),permanent:false},pics(n)+' moved to Recently deleted').then(function(){sel.clear();updateBar()})};
+$('bPerm').onclick=function(){
+  if(!confirm('Permanently delete '+pics(sel.size)+'? This cannot be undone.'))return;
+  act('/api/delete',{ids:ids(),permanent:true},'Deleted permanently').then(function(){sel.clear();updateBar()});
+};
+$('bRestore').onclick=function(){act('/api/restore',{ids:ids()},'Restored').then(function(){sel.clear();updateBar()})};
+$('bEmpty').onclick=function(){
+  if(!confirm('Permanently delete everything in Recently deleted?'))return;
+  act('/api/empty-trash',{},'Recently deleted emptied').then(function(){sel.clear();updateBar()});
+};
+$('newShowGo').onclick=function(){
+  var n=$('newShow').value.trim();if(!n)return;
+  api('/api/slideshow/create',{name:n}).then(function(){$('newShow').value='';toast('Created');return load()}).catch(function(e){toast(e.message)});
+};
+
+/* ---------- filters ---------- */
+function filterCount(){return (V.dMode&&V.d1?1:0)+(V.batch?1:0)+(V.memb?1:0)+(V.low?1:0)+(V.no169?1:0)+(V.dup?1:0)}
+function syncFilters(){
+  V.dMode=$('dMode').value;V.d1=$('d1').value;V.d2=$('d2').value;
+  $('d1').classList.toggle('hidden',!V.dMode);$('d2').classList.toggle('hidden',V.dMode!=='between');
+  V.batch=$('fBatch').value;V.memb=$('fMemb').value;
+  V.low=$('fLow').checked;V.no169=$('fNo169').checked;V.dup=$('fDup').checked;
+  if($('fSort').value==='rand'&&V.sort!=='rand')randSeed=Math.random()*1000;
+  V.sort=$('fSort').value;
+  $('fToggle').textContent='Filters ('+filterCount()+')';
+  lastIdx=-1;refresh();
+}
+['dMode','d1','d2','fBatch','fMemb','fLow','fNo169','fDup','fSort'].forEach(function(id){$(id).addEventListener('change',syncFilters)});
+function iso(ms){var d=new Date(ms),p=function(n){return (n<10?'0':'')+n};return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())}
+document.querySelectorAll('[data-q]').forEach(function(b){b.onclick=function(){
+  var now=new Date(),q=b.dataset.q,from;
+  if(q==='today')from=startOfDay(now.getTime());
+  else if(q==='week'){var d=new Date(startOfDay(now.getTime()));d.setDate(d.getDate()-((d.getDay()+6)%7));from=d.getTime()}
+  else {var m=new Date(now.getFullYear(),now.getMonth(),1);from=m.getTime()}
+  $('dMode').value='between';$('d1').value=iso(from);$('d2').value=iso(now.getTime());syncFilters();
+}});
+$('fReset').onclick=function(){
+  $('dMode').value='';$('d1').value='';$('d2').value='';$('fBatch').value='';$('fMemb').value='';
+  $('fLow').checked=$('fNo169').checked=$('fDup').checked=false;$('fSort').value='new';syncFilters();
+};
+$('reload').onclick=load;
+$('fToggle').onclick=function(){$('filters').classList.toggle('open')};
+$('upBtn').onclick=function(){var p=$('upPanel');p.open=true;p.scrollIntoView({behavior:'smooth',block:'start'})};
+
+/* ---------- lightbox ---------- */
+function openLb(id){
+  var i=byId[id];$('lbImg').src='/image/'+id;
+  $('lbCap').textContent=i.filename+'  '+i.width+'×'+i.height;
+  $('lb').classList.remove('hidden');
+}
+function closeLb(){$('lb').classList.add('hidden');$('lbImg').removeAttribute('src')}
+$('lb').onclick=closeLb;
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeLb();closeMenu()}});
+
+/* ---------- upload ---------- */
+function stamp(){var d=new Date(),p=function(n){return (n<10?'0':'')+n};return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes())}
+$('upName').value='Upload '+stamp();
+var upBusy=false;
+function uploadFiles(files){
+  files=Array.from(files).filter(function(f){return /\.(jpe?g|png|webp|bmp)$/i.test(f.name)});
+  if(!files.length){toast('No supported pictures (JPG, PNG, WebP or BMP)');return}
+  if(upBusy){toast('Upload in progress');return}
+  upBusy=true;
+  var skip=true,show=$('upShow').value,total=files.reduce(function(a,f){return a+f.size},0),done=0;
+  var res={added:0,duplicate:0,failed:0};
+  var prog=$('upProg');prog.classList.remove('hidden');prog.max=total||1;prog.value=0;
+  $('results').innerHTML='';
+  api('/api/batch',{name:$('upName').value.trim()||('Upload '+stamp())}).then(function(b){
+    var batchId=b.batchId,k=0;
+    function next(){
+      if(k>=files.length)return Promise.resolve();
+      var f=files[k++];
+      return sendOne(f,batchId,show,skip,function(loaded){prog.value=done+loaded;$('upStat').textContent='Uploading '+k+' / '+files.length+': '+f.name})
+        .then(function(r){(r.results||[]).forEach(function(x){res[x.status]=(res[x.status]||0)+1;addRes(x)})})
+        .catch(function(e){res.failed++;addRes({name:f.name,status:'failed',reason:e.message})})
+        .then(function(){done+=f.size;prog.value=done;return next()});
+    }
+    return next();
+  }).catch(function(e){toast('Upload failed: '+e.message)}).then(function(){
+    upBusy=false;
+    $('upStat').textContent='Done: '+res.added+' added, '+res.duplicate+' duplicate, '+res.failed+' failed';
+    $('upName').value='Upload '+stamp();$('files').value='';
+    load();
+  });
+}
+function addRes(x){
+  var d=document.createElement('div');d.className=x.status;
+  d.textContent=x.name+' — '+x.status+(x.reason?' ('+x.reason+')':'');
+  $('results').appendChild(d);
+}
+function sendOne(f,batchId,show,skip,onProg){
+  return new Promise(function(resolve,reject){
+    var fd=new FormData();
+    fd.append('batchId',batchId);if(show)fd.append('slideshowId',show);
+    fd.append('skipDuplicates',skip?'true':'false');fd.append('file',f,f.name);
+    var x=new XMLHttpRequest();x.open('POST','/api/upload');x.withCredentials=true;
+    x.upload.onprogress=function(e){if(e.lengthComputable)onProg(e.loaded)};
+    x.onload=function(){
+      var j={};try{j=JSON.parse(x.responseText)}catch(_){}
+      if(x.status===401){showLogin();reject(new Error('Login required'))}
+      else if(x.status>=200&&x.status<300)resolve(j);
+      else reject(new Error(j.error||('HTTP '+x.status)));
+    };
+    x.onerror=function(){reject(new Error('Network error'))};
+    x.send(fd);
+  });
+}
+$('files').onchange=function(){uploadFiles(this.files)};
+var dz=$('drop');
+['dragenter','dragover'].forEach(function(n){dz.addEventListener(n,function(e){e.preventDefault();dz.classList.add('over')})});
+['dragleave','drop'].forEach(function(n){dz.addEventListener(n,function(e){e.preventDefault();dz.classList.remove('over')})});
+dz.addEventListener('drop',function(e){uploadFiles(e.dataTransfer.files)});
+window.addEventListener('dragover',function(e){e.preventDefault()});
+window.addEventListener('drop',function(e){e.preventDefault()});
+
+/* ---------- backup ---------- */
+$('bkDown').onclick=function(){location.href='/api/backup'};
+$('bkGo').onclick=function(){
+  var f=$('bkFile').files[0];if(!f){toast('Choose a backup file');return}
+  if(!confirm('Restore this backup? Matching slideshows and settings will be overwritten.'))return;
+  f.text().then(function(t){
+    var j;try{j=JSON.parse(t)}catch(e){throw new Error('Not valid JSON')}
+    return api('/api/restore-backup',j);
+  }).then(function(r){
+    $('bkOut').textContent='Restored. Linked '+r.linked+' pictures to slideshows ('+r.notFound+' not found), '+r.favoritesLinked+' favorites ('+r.favoritesNotFound+' not found). Slideshows: '+r.slideshowsCreated+' created, '+r.slideshowsUpdated+' updated.';
+    return load();
+  }).catch(function(e){$('bkOut').textContent='Failed: '+e.message});
+};
+
+/* ---------- start ---------- */
+api('/api/state').then(function(){return load()}).catch(function(){showLogin()});
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">TV Art</string>
+    <string name="overlay_service_label">TV Art overlay</string>
+    <string name="overlay_service_desc">Shows your art slideshow on top of YouTube while music keeps playing. Double-press Menu to toggle.</string>
+</resources>

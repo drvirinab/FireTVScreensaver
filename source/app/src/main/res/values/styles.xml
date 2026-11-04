@@ -1,0 +1,18 @@
+<resources>
+    <style name="AppTheme" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/bg</item>
+        <item name="android:colorAccent">@color/accent</item>
+        <item name="android:colorPrimary">@color/bg</item>
+        <item name="android:colorPrimaryDark">@color/bg</item>
+        <item name="android:alertDialogTheme">@style/DialogTheme</item>
+    </style>
+    <style name="AppTheme.Fullscreen">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowBackground">@android:color/black</item>
+    </style>
+    <style name="DialogTheme" parent="android:Theme.Material.Dialog.Alert">
+        <item name="android:colorAccent">@color/accent</item>
+    </style>
+    <color name="bg">#FF101418</color>
+    <color name="accent">#FF4FC3F7</color>
+</resources>
